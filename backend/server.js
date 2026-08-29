@@ -38,7 +38,9 @@ app.post('/api/merge', upload.array('files'), async (req, res) => {
             const pdf = await PDFDocument.load(pdfBytes);
             const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
             copiedPages.forEach((page) => mergedPdf.addPage(page));
-            fs.unlinkSync(file.path);
+            
+            // Safe single unlink
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
         }
 
         const finalPdfBytes = await mergedPdf.save();
@@ -62,11 +64,11 @@ app.post('/api/split', upload.single('file'), async (req, res) => {
         const srcDoc = await PDFDocument.load(pdfBytes);
 
         const newDoc = await PDFDocument.create();
-        const copiedPages = await newDoc.copyPages(srcDoc, [0]); // First page
+        const copiedPages = await newDoc.copyPages(srcDoc, [0]);
         newDoc.addPage(copiedPages[0]);
 
         const splitPdfBytes = await newDoc.save();
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename="split_page_1.pdf"');
@@ -89,7 +91,7 @@ app.post('/api/compress', upload.single('file'), async (req, res) => {
         const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
         const compressedPdfBytes = await pdfDoc.save({ useObjectStreams: true });
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename="compressed.pdf"');
@@ -101,7 +103,7 @@ app.post('/api/compress', upload.single('file'), async (req, res) => {
     }
 });
 
-// 4. IMAGE TO PDF (Native PDF-Lib Solution)
+// 4. IMAGE TO PDF
 app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
@@ -114,7 +116,6 @@ app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
             const imageBytes = fs.readFileSync(file.path);
             let image;
 
-            // Direct embed for PNG and JPG/JPEG
             if (file.mimetype === 'image/png' || file.originalname.toLowerCase().endsWith('.png')) {
                 image = await pdfDoc.embedPng(imageBytes);
             } else {
@@ -129,7 +130,7 @@ app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
                 height: image.height,
             });
 
-            fs.unlinkSync(file.path);
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
         }
 
         const pdfBytes = await pdfDoc.save();
@@ -151,7 +152,7 @@ app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
 
         const pdfBuffer = fs.readFileSync(req.file.path);
         const pdfData = await pdfParse(pdfBuffer);
-        fs.unlinkSync(req.file.path);
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
         const extractedText = pdfData.text || "No readable text found in this PDF.";
         const outputFilename = req.file.originalname.replace(/\.pdf$/i, '') + '.txt';
@@ -169,9 +170,12 @@ app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
 // 6. PDF TO IMAGE
 app.post('/api/pdf-to-image', upload.single('file'), async (req, res) => {
     try {
-        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
         res.status(200).json({ message: 'PDF processed successfully' });
     } catch (err) {
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         res.status(500).json({ error: err.message });
     }
 });
