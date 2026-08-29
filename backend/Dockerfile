@@ -1,7 +1,7 @@
-# Base Node.js Linux image
+# Base Node.js image
 FROM node:18-slim
 
-# Install server-side PDF libraries and system utilities
+# Install system utilities for PDF processing
 RUN apt-get update && apt-get install -y \
     ghostscript \
     poppler-utils \
@@ -14,15 +14,15 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy package files and install dependencies
+# Copy package files and install production dependencies
 COPY package*.json ./
 RUN npm install --production
 
-# Copy application source code
+# Copy application code
 COPY . .
 
-# Expose server port
+# Expose Render default port
 EXPOSE 10000
 
-# Start Express server
-CMD ["npm", "start"]
+# Start server directly with Node
+CMD ["node", "server.js"]

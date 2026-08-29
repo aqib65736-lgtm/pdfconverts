@@ -1,6 +1,7 @@
 {
   "name": "pdfconverts-backend",
   "version": "1.0.0",
+  "description": "PDFConverts Cloud Processing Server",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

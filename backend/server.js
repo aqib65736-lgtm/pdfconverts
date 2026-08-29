@@ -9,13 +9,16 @@ const pdfParse = require('pdf-parse');
 const app = express();
 const port = process.env.PORT || 10000;
 
-app.use(cors());
+// Enable CORS for Vercel Frontend
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 
-// Serve static HTML file
-app.use(express.static(__dirname));
-
-// Ensure upload directory exists in /tmp
+// Ensure upload directory exists in container /tmp
 const uploadDir = path.join('/tmp', 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -23,9 +26,9 @@ if (!fs.existsSync(uploadDir)) {
 
 const upload = multer({ dest: uploadDir });
 
-// Home route to serve HTML
+// Health Check Endpoint
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.status(200).send('PDFConverts API Server is Live & Healthy!');
 });
 
 // 1. MERGE PDF
@@ -170,5 +173,5 @@ app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`PDFConverts Server running on port ${port}`);
+    console.log(`PDFConverts Backend running on port ${port}`);
 });
