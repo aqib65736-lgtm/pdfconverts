@@ -12,7 +12,10 @@ const port = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 
-// Ensure upload directory exists
+// Serve static HTML file
+app.use(express.static(__dirname));
+
+// Ensure upload directory exists in /tmp
 const uploadDir = path.join('/tmp', 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -20,9 +23,9 @@ if (!fs.existsSync(uploadDir)) {
 
 const upload = multer({ dest: uploadDir });
 
-// Health Check Endpoint
+// Home route to serve HTML
 app.get('/', (req, res) => {
-    res.send('PDFConverts Processing Server is Running!');
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // 1. MERGE PDF
@@ -39,7 +42,6 @@ app.post('/api/merge', upload.array('files'), async (req, res) => {
             const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
             copiedPages.forEach((page) => mergedPdf.addPage(page));
             
-            // Safe single unlink
             if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
         }
 
@@ -165,27 +167,6 @@ app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
         console.error('PDF to Word Error:', err);
         res.status(500).json({ error: 'Failed to convert PDF to Word/Text: ' + err.message });
     }
-});
-
-// 6. PDF TO IMAGE
-app.post('/api/pdf-to-image', upload.single('file'), async (req, res) => {
-    try {
-        if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-        res.status(200).json({ message: 'PDF processed successfully' });
-    } catch (err) {
-        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 7. WORD TO PDF
-app.post('/api/word-to-pdf', upload.single('file'), (req, res) => {
-    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    res.status(400).json({ 
-        error: 'Word to PDF feature requires server binary (LibreOffice).' 
-    });
 });
 
 app.listen(port, () => {
