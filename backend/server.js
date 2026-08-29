@@ -4,7 +4,6 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { PDFDocument } = require('pdf-lib');
-const sharp = require('sharp');
 const pdfParse = require('pdf-parse');
 
 const app = express();
@@ -13,7 +12,7 @@ const port = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 
-// Ensure upload and temp directory exists
+// Ensure upload directory exists
 const uploadDir = path.join('/tmp', 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -39,7 +38,7 @@ app.post('/api/merge', upload.array('files'), async (req, res) => {
             const pdf = await PDFDocument.load(pdfBytes);
             const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
             copiedPages.forEach((page) => mergedPdf.addPage(page));
-            fs.unlinkSync(file.path); // Clean temp file
+            fs.unlinkSync(file.path);
         }
 
         const finalPdfBytes = await mergedPdf.save();
@@ -52,7 +51,7 @@ app.post('/api/merge', upload.array('files'), async (req, res) => {
     }
 });
 
-// 2. SPLIT PDF (Extract Pages / Range)
+// 2. SPLIT PDF
 app.post('/api/split', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
@@ -61,11 +60,9 @@ app.post('/api/split', upload.single('file'), async (req, res) => {
 
         const pdfBytes = fs.readFileSync(req.file.path);
         const srcDoc = await PDFDocument.load(pdfBytes);
-        const pageCount = srcDoc.getPageCount();
 
-        // Create a new PDF with the first page (or all pages split)
         const newDoc = await PDFDocument.create();
-        const copiedPages = await newDoc.copyPages(srcDoc, [0]); // Defaulting to 1st page
+        const copiedPages = await newDoc.copyPages(srcDoc, [0]); // First page
         newDoc.addPage(copiedPages[0]);
 
         const splitPdfBytes = await newDoc.save();
@@ -81,7 +78,7 @@ app.post('/api/split', upload.single('file'), async (req, res) => {
     }
 });
 
-// 3. COMPRESS PDF (Pure JS Optimization)
+// 3. COMPRESS PDF
 app.post('/api/compress', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
@@ -91,7 +88,6 @@ app.post('/api/compress', upload.single('file'), async (req, res) => {
         const pdfBytes = fs.readFileSync(req.file.path);
         const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
-        // Re-save with structural compression
         const compressedPdfBytes = await pdfDoc.save({ useObjectStreams: true });
         fs.unlinkSync(req.file.path);
 
@@ -105,7 +101,7 @@ app.post('/api/compress', upload.single('file'), async (req, res) => {
     }
 });
 
-// 4. IMAGE TO PDF (Supports JPG, PNG, WEBP via Sharp + PDF-Lib)
+// 4. IMAGE TO PDF (Native PDF-Lib Solution)
 app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
@@ -115,9 +111,15 @@ app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
         const pdfDoc = await PDFDocument.create();
 
         for (const file of req.files) {
-            // Convert any image format to standard PNG buffer via Sharp
-            const pngBuffer = await sharp(file.path).toFormat('png').toBuffer();
-            const image = await pdfDoc.embedPng(pngBuffer);
+            const imageBytes = fs.readFileSync(file.path);
+            let image;
+
+            // Direct embed for PNG and JPG/JPEG
+            if (file.mimetype === 'image/png' || file.originalname.toLowerCase().endsWith('.png')) {
+                image = await pdfDoc.embedPng(imageBytes);
+            } else {
+                image = await pdfDoc.embedJpg(imageBytes);
+            }
 
             const page = pdfDoc.addPage([image.width, image.height]);
             page.drawImage(image, {
@@ -140,7 +142,7 @@ app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
     }
 });
 
-// 5. PDF TO WORD / TEXT (High Speed Native Engine)
+// 5. PDF TO WORD / TEXT
 app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
@@ -164,17 +166,12 @@ app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
     }
 });
 
-// 6. PDF TO IMAGE (Placeholder Stream)
+// 6. PDF TO IMAGE
 app.post('/api/pdf-to-image', upload.single('file'), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-
-        fs.unlinkSync(req.file.path);
+        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         res.status(200).json({ message: 'PDF processed successfully' });
     } catch (err) {
-        if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
         res.status(500).json({ error: err.message });
     }
 });
@@ -182,8 +179,8 @@ app.post('/api/pdf-to-image', upload.single('file'), async (req, res) => {
 // 7. WORD TO PDF
 app.post('/api/word-to-pdf', upload.single('file'), (req, res) => {
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    res.status(500).json({ 
-        error: 'Word to PDF requires LibreOffice binary which is unavailable on Free Render Containers. Please use PDF to Word or Image tools.' 
+    res.status(400).json({ 
+        error: 'Word to PDF feature requires server binary (LibreOffice).' 
     });
 });
 
