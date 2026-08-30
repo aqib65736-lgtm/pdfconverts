@@ -1,17 +1,14 @@
 FROM node:18-slim
 
-# Install system dependencies & document processing engines
+# Install LibreOffice, Ghostscript, Poppler & Utilities for iLovePDF quality
 RUN apt-get update && apt-get install -y \
+    libreoffice \
     ghostscript \
     poppler-utils \
-    libreoffice \
-    tesseract-ocr \
+    graphicsmagick \
     python3 \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
-
-# Install python-based robust pdf2docx library for proper Word conversion
-RUN pip3 install pdf2docx --break-system-packages || pip3 install pdf2docx
 
 WORKDIR /usr/src/app
 
