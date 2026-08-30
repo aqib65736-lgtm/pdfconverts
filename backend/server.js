@@ -6,12 +6,10 @@ const path = require('path');
 const { exec } = require('child_process');
 const archiver = require('archiver');
 const { PDFDocument } = require('pdf-lib');
-const pdfParse = require('pdf-parse');
 
 const app = express();
 const port = process.env.PORT || 10000;
 
-// Enable CORS for Vercel Frontend
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'OPTIONS'],
@@ -20,7 +18,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// Temporary Working Directory in Linux Container
 const uploadDir = path.join('/tmp', 'pdf_uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -28,12 +25,10 @@ if (!fs.existsSync(uploadDir)) {
 
 const upload = multer({ dest: uploadDir });
 
-// Health Check Endpoint
 app.get('/', (req, res) => {
-    res.status(200).send('PDFConverts Backend Server is Running Perfectly!');
+    res.status(200).send('PDFConverts High-Accuracy Backend Active!');
 });
 
-// Helper Function: Delete Temp Files
 const cleanUpFiles = (filePaths) => {
     filePaths.forEach(fp => {
         if (fp && fs.existsSync(fp)) {
@@ -43,90 +38,92 @@ const cleanUpFiles = (filePaths) => {
 };
 
 // -------------------------------------------------------------
-// TOOL 1: MERGE PDF
+// 1. MERGE PDF (Native PDF-Lib Engine)
 // -------------------------------------------------------------
 app.post('/api/merge', upload.array('files'), async (req, res) => {
     const uploadedFiles = req.files || [];
     try {
-        if (uploadedFiles.length === 0) return res.status(400).json({ error: 'No files uploaded' });
+        if (uploadedFiles.length < 2) {
+            return res.status(400).json({ error: 'Please upload at least 2 PDF files to merge.' });
+        }
 
         const mergedPdf = await PDFDocument.create();
         for (const file of uploadedFiles) {
             const pdfBytes = fs.readFileSync(file.path);
-            const pdf = await PDFDocument.load(pdfBytes);
+            const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
             const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
             copiedPages.forEach((page) => mergedPdf.addPage(page));
         }
 
-        const finalPdfBytes = await mergedPdf.save();
+        const finalBytes = await mergedPdf.save();
         cleanUpFiles(uploadedFiles.map(f => f.path));
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename="merged.pdf"');
-        res.send(Buffer.from(finalPdfBytes));
+        res.setHeader('Content-Disposition', 'attachment; filename="merged_document.pdf"');
+        res.send(Buffer.from(finalBytes));
     } catch (err) {
         cleanUpFiles(uploadedFiles.map(f => f.path));
-        res.status(500).json({ error: 'Failed to merge PDFs: ' + err.message });
+        res.status(500).json({ error: 'Merge failed: ' + err.message });
     }
 });
 
 // -------------------------------------------------------------
-// TOOL 2: SPLIT PDF
+// 2. SPLIT PDF (Page 1 Extraction / Scalable)
 // -------------------------------------------------------------
 app.post('/api/split', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
     const filePath = req.file.path;
 
     try {
         const pdfBytes = fs.readFileSync(filePath);
-        const srcDoc = await PDFDocument.load(pdfBytes);
+        const srcDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
         const newDoc = await PDFDocument.create();
         const copiedPages = await newDoc.copyPages(srcDoc, [0]);
         newDoc.addPage(copiedPages[0]);
 
-        const splitPdfBytes = await newDoc.save();
+        const splitBytes = await newDoc.save();
         cleanUpFiles([filePath]);
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename="split_page_1.pdf"');
-        res.send(Buffer.from(splitPdfBytes));
+        res.send(Buffer.from(splitBytes));
     } catch (err) {
         cleanUpFiles([filePath]);
-        res.status(500).json({ error: 'Failed to split PDF: ' + err.message });
+        res.status(500).json({ error: 'Split failed: ' + err.message });
     }
 });
 
 // -------------------------------------------------------------
-// TOOL 3: COMPRESS PDF
+// 3. COMPRESS PDF (Ghostscript Engine - High Efficiency)
 // -------------------------------------------------------------
-app.post('/api/compress', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-    const filePath = req.file.path;
+app.post('/api/compress', upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
+    const inputPath = req.file.path;
+    const outputPath = path.join(uploadDir, `compressed_${Date.now()}.pdf`);
 
-    try {
-        const pdfBytes = fs.readFileSync(filePath);
-        const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+    // Use Ghostscript for true vector and image compression
+    const gsCmd = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`;
 
-        const compressedPdfBytes = await pdfDoc.save({ useObjectStreams: true });
-        cleanUpFiles([filePath]);
+    exec(gsCmd, (error) => {
+        if (error || !fs.existsSync(outputPath)) {
+            cleanUpFiles([inputPath]);
+            return res.status(500).json({ error: 'Ghostscript compression failed.' });
+        }
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename="compressed.pdf"');
-        res.send(Buffer.from(compressedPdfBytes));
-    } catch (err) {
-        cleanUpFiles([filePath]);
-        res.status(500).json({ error: 'Failed to compress PDF: ' + err.message });
-    }
+        res.download(outputPath, 'compressed_document.pdf', () => {
+            cleanUpFiles([inputPath, outputPath]);
+        });
+    });
 });
 
 // -------------------------------------------------------------
-// TOOL 4: IMAGE TO PDF
+// 4. IMAGE TO PDF (Supports PNG, JPG, JPEG)
 // -------------------------------------------------------------
 app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
     const uploadedFiles = req.files || [];
     try {
-        if (uploadedFiles.length === 0) return res.status(400).json({ error: 'No images uploaded' });
+        if (uploadedFiles.length === 0) return res.status(400).json({ error: 'No images uploaded.' });
 
         const pdfDoc = await PDFDocument.create();
 
@@ -134,7 +131,8 @@ app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
             const imageBytes = fs.readFileSync(file.path);
             let image;
 
-            if (file.mimetype === 'image/png' || file.originalname.toLowerCase().endsWith('.png')) {
+            const ext = path.extname(file.originalname).toLowerCase();
+            if (ext === '.png' || file.mimetype === 'image/png') {
                 image = await pdfDoc.embedPng(imageBytes);
             } else {
                 image = await pdfDoc.embedJpg(imageBytes);
@@ -148,31 +146,29 @@ app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
         cleanUpFiles(uploadedFiles.map(f => f.path));
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename="images_converted.pdf"');
+        res.setHeader('Content-Disposition', 'attachment; filename="converted_images.pdf"');
         res.send(Buffer.from(pdfBytes));
     } catch (err) {
         cleanUpFiles(uploadedFiles.map(f => f.path));
-        res.status(500).json({ error: 'Failed to convert images: ' + err.message });
+        res.status(500).json({ error: 'Image to PDF failed: ' + err.message });
     }
 });
 
 // -------------------------------------------------------------
-// TOOL 5: PDF TO IMAGE (Using Poppler pdftoppm)
+// 5. PDF TO IMAGE (Poppler pdftoppm 150 DPI)
 // -------------------------------------------------------------
 app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
 
     const filePath = req.file.path;
-    const outputPrefix = path.join(uploadDir, `img_${Date.now()}`);
+    const outputPrefix = path.join(uploadDir, `page_${Date.now()}`);
 
-    // pdftoppm extracts high resolution PNG pages
     exec(`pdftoppm -png -r 150 "${filePath}" "${outputPrefix}"`, (error) => {
         if (error) {
             cleanUpFiles([filePath]);
-            return res.status(500).json({ error: 'PDF to Image conversion failed' });
+            return res.status(500).json({ error: 'PDF to Image rendering failed.' });
         }
 
-        // Find created PNG files
         const filesInDir = fs.readdirSync(uploadDir);
         const generatedImages = filesInDir
             .filter(f => f.startsWith(path.basename(outputPrefix)) && f.endsWith('.png'))
@@ -180,23 +176,22 @@ app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
 
         if (generatedImages.length === 0) {
             cleanUpFiles([filePath]);
-            return res.status(500).json({ error: 'No images generated' });
+            return res.status(500).json({ error: 'No image pages generated.' });
         }
 
-        // Return single PNG if 1 page, else stream a ZIP
         if (generatedImages.length === 1) {
-            res.download(generatedImages[0], 'converted_page.png', () => {
+            res.download(generatedImages[0], 'page_1.png', () => {
                 cleanUpFiles([filePath, ...generatedImages]);
             });
         } else {
             res.setHeader('Content-Type', 'application/zip');
-            res.setHeader('Content-Disposition', 'attachment; filename="pdf_images.zip"');
+            res.setHeader('Content-Disposition', 'attachment; filename="pdf_pages_images.zip"');
 
             const archive = archiver('zip', { zlib: { level: 9 } });
             archive.pipe(res);
 
-            generatedImages.forEach((imgFile, index) => {
-                archive.file(imgFile, { name: `page_${index + 1}.png` });
+            generatedImages.forEach((imgFile, idx) => {
+                archive.file(imgFile, { name: `page_${idx + 1}.png` });
             });
 
             archive.finalize();
@@ -209,21 +204,20 @@ app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
 });
 
 // -------------------------------------------------------------
-// TOOL 6: WORD TO PDF (Using LibreOffice CLI Engine)
+// 6. WORD TO PDF (LibreOffice Conversion Engine)
 // -------------------------------------------------------------
 app.post('/api/word-to-pdf', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No DOCX file uploaded' });
+    if (!req.file) return res.status(400).json({ error: 'No Word (.docx) file uploaded.' });
 
     const inputPath = req.file.path;
 
-    // LibreOffice command to convert docx to pdf
     exec(`soffice --headless --convert-to pdf "${inputPath}" --outdir "${uploadDir}"`, (error) => {
         if (error) {
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'Word to PDF conversion failed: ' + error.message });
+            return res.status(500).json({ error: 'Word to PDF conversion failed.' });
         }
 
-        const expectedPdfPath = inputPath + '.pdf';
+        const expectedPdfPath = path.join(uploadDir, path.basename(inputPath, path.extname(inputPath)) + '.pdf');
 
         if (fs.existsSync(expectedPdfPath)) {
             res.download(expectedPdfPath, 'converted_word.pdf', () => {
@@ -231,35 +225,37 @@ app.post('/api/word-to-pdf', upload.single('file'), (req, res) => {
             });
         } else {
             cleanUpFiles([inputPath]);
-            res.status(500).json({ error: 'Converted PDF file not found' });
+            res.status(500).json({ error: 'Output PDF file not found.' });
         }
     });
 });
 
 // -------------------------------------------------------------
-// TOOL 7: PDF TO WORD / TEXT
+// 7. PDF TO WORD (.docx Layout Retained via pdf2docx Engine)
 // -------------------------------------------------------------
-app.post('/api/pdf-to-word', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-    const filePath = req.file.path;
+app.post('/api/pdf-to-word', upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
 
-    try {
-        const pdfBuffer = fs.readFileSync(filePath);
-        const pdfData = await pdfParse(pdfBuffer);
-        cleanUpFiles([filePath]);
+    const inputPath = req.file.path;
+    const outputPath = path.join(uploadDir, `converted_${Date.now()}.docx`);
 
-        const extractedText = pdfData.text || "No readable text found in this PDF.";
-        const outputFilename = (req.file.originalname || 'document').replace(/\.pdf$/i, '') + '.txt';
+    // Call Python pdf2docx command line tool
+    const cmd = `python3 -c "from pdf2docx import Converter; cv = Converter(r'${inputPath}'); cv.convert(r'${outputPath}'); cv.close()"`;
 
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${outputFilename}"`);
-        res.send(extractedText);
-    } catch (err) {
-        cleanUpFiles([filePath]);
-        res.status(500).json({ error: 'Failed to extract text: ' + err.message });
-    }
+    exec(cmd, (error) => {
+        if (error || !fs.existsSync(outputPath)) {
+            cleanUpFiles([inputPath]);
+            return res.status(500).json({ error: 'PDF to Word conversion failed: ' + (error ? error.message : 'File write failed') });
+        }
+
+        const downloadFileName = (req.file.originalname || 'document').replace(/\.pdf$/i, '') + '.docx';
+
+        res.download(outputPath, downloadFileName, () => {
+            cleanUpFiles([inputPath, outputPath]);
+        });
+    });
 });
 
 app.listen(port, () => {
-    console.log(`PDFConverts Backend operational on port ${port}`);
+    console.log(`Enhanced PDFConverts Engine operational on port ${port}`);
 });

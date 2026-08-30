@@ -1,28 +1,25 @@
-# Base Node.js Linux image
 FROM node:18-slim
 
-# Install system utilities required for all 7 PDF tools
+# Install system dependencies & document processing engines
 RUN apt-get update && apt-get install -y \
     ghostscript \
     poppler-utils \
     libreoffice \
     tesseract-ocr \
-    ffmpeg \
-    graphicsmagick \
+    python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory inside container
+# Install python-based robust pdf2docx library for proper Word conversion
+RUN pip3 install pdf2docx --break-system-packages || pip3 install pdf2docx
+
 WORKDIR /usr/src/app
 
-# Copy package files & install Node dependencies
 COPY package*.json ./
 RUN npm install --production
 
-# Copy application code
 COPY . .
 
-# Expose Render default port
 EXPOSE 10000
 
-# Start Express server directly
 CMD ["node", "server.js"]
