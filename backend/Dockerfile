@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python-based PDF2DOCX engine which retains layout, tables and embedded images
-RUN pip3 install --no-cache-dir pdf2docx PyMuPDF || pip3 install pdf2docx
+# Install python-based PDF2DOCX engine with --break-system-packages flag
+RUN pip3 install --no-cache-dir --break-system-packages pdf2docx PyMuPDF
 
 WORKDIR /usr/src/app
 
