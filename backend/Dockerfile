@@ -1,14 +1,19 @@
 FROM node:18-slim
 
-# Install LibreOffice, Ghostscript, Poppler & Utilities for iLovePDF quality
+# System level binaries for LibreOffice, Ghostscript, Poppler & Python
 RUN apt-get update && apt-get install -y \
-    libreoffice \
     ghostscript \
     poppler-utils \
-    graphicsmagick \
+    libreoffice \
+    tesseract-ocr \
     python3 \
     python3-pip \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
+
+# Install python-based PDF2DOCX engine which retains layout, tables and embedded images
+RUN pip3 install --no-cache-dir pdf2docx PyMuPDF || pip3 install pdf2docx
 
 WORKDIR /usr/src/app
 

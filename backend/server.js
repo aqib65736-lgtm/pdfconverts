@@ -10,12 +10,7 @@ const { PDFDocument } = require('pdf-lib');
 const app = express();
 const port = process.env.PORT || 10000;
 
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type']
-}));
-
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] }));
 app.use(express.json());
 
 const uploadDir = path.join('/tmp', 'pdf_uploads');
@@ -24,10 +19,6 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const upload = multer({ dest: uploadDir });
-
-app.get('/', (req, res) => {
-    res.status(200).send('PDFConverts iLovePDF Quality Backend Active!');
-});
 
 const cleanUpFiles = (filePaths) => {
     filePaths.forEach(fp => {
@@ -38,19 +29,19 @@ const cleanUpFiles = (filePaths) => {
 };
 
 // -------------------------------------------------------------
-// 1. MERGE PDF (Maintains Exact Order from Frontend)
+// 1. MERGE PDF (Strict Sequential Order Maintenance)
 // -------------------------------------------------------------
 app.post('/api/merge', upload.array('files'), async (req, res) => {
     const uploadedFiles = req.files || [];
     try {
-        if (uploadedFiles.length < 2) {
-            return res.status(400).json({ error: 'Please upload at least 2 PDF files to merge.' });
-        }
+        if (uploadedFiles.length < 2) return res.status(400).json({ error: 'Upload at least 2 files' });
 
         const mergedPdf = await PDFDocument.create();
 
-        for (const file of uploadedFiles) {
-            const pdfBytes = fs.readFileSync(file.path);
+        // Preserve exact sequence of user uploads
+        for (let i = 0; i < uploadedFiles.length; i++) {
+            const filePath = uploadedFiles[i].path;
+            const pdfBytes = fs.readFileSync(filePath);
             const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
             const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
             copiedPages.forEach((page) => mergedPdf.addPage(page));
@@ -69,40 +60,45 @@ app.post('/api/merge', upload.array('files'), async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 2. SPLIT PDF (Page Ranges Support e.g., 1-3, 5)
+// 2. SPLIT PDF (Page Serial / Range Support)
 // -------------------------------------------------------------
 app.post('/api/split', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     const filePath = req.file.path;
-    const pageRangeStr = req.body.pages || '1';
+    const pageRangeStr = req.body.pageRange || '1';
 
     try {
         const pdfBytes = fs.readFileSync(filePath);
         const srcDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
         const totalPages = srcDoc.getPageCount();
 
-        let pagesToExtract = [];
+        const selectedIndices = new Set();
         const parts = pageRangeStr.split(',');
 
         parts.forEach(part => {
-            if (part.includes('-')) {
-                const [start, end] = part.split('-').map(n => parseInt(n.trim()));
-                if (!isNaN(start) && !isNaN(end)) {
-                    for (let i = start; i <= end; i++) {
-                        if (i >= 1 && i <= totalPages) pagesToExtract.push(i - 1);
-                    }
+            const range = part.trim().split('-');
+            if (range.length === 2) {
+                let start = parseInt(range[0]) - 1;
+                let end = parseInt(range[1]) - 1;
+                for (let i = start; i <= end; i++) {
+                    if (i >= 0 && i < totalPages) selectedIndices.add(i);
                 }
             } else {
-                const p = parseInt(part.trim());
-                if (!isNaN(p) && p >= 1 && p <= totalPages) pagesToExtract.push(p - 1);
+                let single = parseInt(part.trim()) - 1;
+                if (!isNaN(single) && single >= 0 && single < totalPages) selectedIndices.add(single);
             }
         });
 
-        if (pagesToExtract.length === 0) pagesToExtract = [0];
-
+        const pagesToExtract = Array.from(selectedIndices).sort((a, b) => a - b);
         const newDoc = await PDFDocument.create();
-        const copiedPages = await newDoc.copyPages(srcDoc, pagesToExtract);
-        copiedPages.forEach(p => newDoc.addPage(p));
+
+        if (pagesToExtract.length > 0) {
+            const copiedPages = await newDoc.copyPages(srcDoc, pagesToExtract);
+            copiedPages.forEach(p => newDoc.addPage(p));
+        } else {
+            const copiedPages = await newDoc.copyPages(srcDoc, [0]);
+            newDoc.addPage(copiedPages[0]);
+        }
 
         const splitBytes = await newDoc.save();
         cleanUpFiles([filePath]);
@@ -117,10 +113,10 @@ app.post('/api/split', upload.single('file'), async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 3. COMPRESS PDF (Ghostscript High Efficiency)
+// 3. COMPRESS PDF
 // -------------------------------------------------------------
 app.post('/api/compress', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     const inputPath = req.file.path;
     const outputPath = path.join(uploadDir, `compressed_${Date.now()}.pdf`);
 
@@ -129,10 +125,10 @@ app.post('/api/compress', upload.single('file'), (req, res) => {
     exec(gsCmd, (error) => {
         if (error || !fs.existsSync(outputPath)) {
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'Ghostscript compression failed.' });
+            return res.status(500).json({ error: 'Compression failed.' });
         }
 
-        res.download(outputPath, 'compressed_document.pdf', () => {
+        res.download(outputPath, 'compressed.pdf', () => {
             cleanUpFiles([inputPath, outputPath]);
         });
     });
@@ -144,15 +140,15 @@ app.post('/api/compress', upload.single('file'), (req, res) => {
 app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
     const uploadedFiles = req.files || [];
     try {
-        if (uploadedFiles.length === 0) return res.status(400).json({ error: 'No images uploaded.' });
+        if (uploadedFiles.length === 0) return res.status(400).json({ error: 'No files uploaded' });
 
         const pdfDoc = await PDFDocument.create();
 
         for (const file of uploadedFiles) {
             const imageBytes = fs.readFileSync(file.path);
             let image;
-
             const ext = path.extname(file.originalname).toLowerCase();
+
             if (ext === '.png' || file.mimetype === 'image/png') {
                 image = await pdfDoc.embedPng(imageBytes);
             } else {
@@ -167,19 +163,19 @@ app.post('/api/image-to-pdf', upload.array('files'), async (req, res) => {
         cleanUpFiles(uploadedFiles.map(f => f.path));
 
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename="converted_images.pdf"');
+        res.setHeader('Content-Disposition', 'attachment; filename="images.pdf"');
         res.send(Buffer.from(pdfBytes));
     } catch (err) {
         cleanUpFiles(uploadedFiles.map(f => f.path));
-        res.status(500).json({ error: 'Image to PDF failed: ' + err.message });
+        res.status(500).json({ error: 'Image conversion failed: ' + err.message });
     }
 });
 
 // -------------------------------------------------------------
-// 5. PDF TO IMAGE (Poppler Engine)
+// 5. PDF TO IMAGE
 // -------------------------------------------------------------
 app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const filePath = req.file.path;
     const outputPrefix = path.join(uploadDir, `page_${Date.now()}`);
@@ -187,7 +183,7 @@ app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
     exec(`pdftoppm -png -r 150 "${filePath}" "${outputPrefix}"`, (error) => {
         if (error) {
             cleanUpFiles([filePath]);
-            return res.status(500).json({ error: 'PDF to Image rendering failed.' });
+            return res.status(500).json({ error: 'Extraction failed' });
         }
 
         const filesInDir = fs.readdirSync(uploadDir);
@@ -195,18 +191,13 @@ app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
             .filter(f => f.startsWith(path.basename(outputPrefix)) && f.endsWith('.png'))
             .map(f => path.join(uploadDir, f));
 
-        if (generatedImages.length === 0) {
-            cleanUpFiles([filePath]);
-            return res.status(500).json({ error: 'No image pages generated.' });
-        }
-
         if (generatedImages.length === 1) {
             res.download(generatedImages[0], 'page_1.png', () => {
                 cleanUpFiles([filePath, ...generatedImages]);
             });
         } else {
             res.setHeader('Content-Type', 'application/zip');
-            res.setHeader('Content-Disposition', 'attachment; filename="pdf_pages.zip"');
+            res.setHeader('Content-Disposition', 'attachment; filename="images.zip"');
 
             const archive = archiver('zip', { zlib: { level: 9 } });
             archive.pipe(res);
@@ -216,70 +207,64 @@ app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
             });
 
             archive.finalize();
-
-            res.on('finish', () => {
-                cleanUpFiles([filePath, ...generatedImages]);
-            });
+            res.on('finish', () => cleanUpFiles([filePath, ...generatedImages]));
         }
     });
 });
 
 // -------------------------------------------------------------
-// 6. WORD TO PDF (LibreOffice Engine)
+// 6. WORD TO PDF
 // -------------------------------------------------------------
 app.post('/api/word-to-pdf', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No Word (.docx) file uploaded.' });
+    if (!req.file) return res.status(400).json({ error: 'No DOCX file uploaded' });
 
     const inputPath = req.file.path;
 
     exec(`soffice --headless --convert-to pdf "${inputPath}" --outdir "${uploadDir}"`, (error) => {
         if (error) {
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'Word to PDF conversion failed.' });
+            return res.status(500).json({ error: 'Conversion failed' });
         }
 
         const expectedPdfPath = path.join(uploadDir, path.basename(inputPath, path.extname(inputPath)) + '.pdf');
 
         if (fs.existsSync(expectedPdfPath)) {
-            res.download(expectedPdfPath, 'converted_word.pdf', () => {
+            res.download(expectedPdfPath, 'converted.pdf', () => {
                 cleanUpFiles([inputPath, expectedPdfPath]);
             });
         } else {
             cleanUpFiles([inputPath]);
-            res.status(500).json({ error: 'Output PDF file not found.' });
+            res.status(500).json({ error: 'PDF file not found' });
         }
     });
 });
 
 // -------------------------------------------------------------
-// 7. PDF TO WORD (LibreOffice Native PDF Engine - Retains All Images & Layout)
+// 7. PDF TO WORD (pdf2docx preserving text, layout & embedded images)
 // -------------------------------------------------------------
 app.post('/api/pdf-to-word', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'No PDF file uploaded.' });
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const inputPath = req.file.path;
+    const outputPath = path.join(uploadDir, `doc_${Date.now()}.docx`);
 
-    // Use LibreOffice to retain images, tables, layouts, and vector graphics accurately
-    exec(`soffice --headless --infilter="writer_pdf_import" --convert-to docx "${inputPath}" --outdir "${uploadDir}"`, (error) => {
-        if (error) {
+    const pythonCode = `
+from pdf2docx import Converter
+cv = Converter(r'${inputPath}')
+cv.convert(r'${outputPath}', start=0, end=None)
+cv.close()
+`;
+
+    exec(`python3 -c "${pythonCode.replace(/\n/g, ' ')}"`, (error) => {
+        if (error || !fs.existsSync(outputPath)) {
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'PDF to Word conversion failed.' });
+            return res.status(500).json({ error: 'PDF to Word conversion failed' });
         }
 
-        const expectedDocxPath = path.join(uploadDir, path.basename(inputPath, path.extname(inputPath)) + '.docx');
-
-        if (fs.existsSync(expectedDocxPath)) {
-            const originalName = (req.file.originalname || 'document').replace(/\.pdf$/i, '') + '.docx';
-            res.download(expectedDocxPath, originalName, () => {
-                cleanUpFiles([inputPath, expectedDocxPath]);
-            });
-        } else {
-            cleanUpFiles([inputPath]);
-            res.status(500).json({ error: 'Converted DOCX file not found.' });
-        }
+        res.download(outputPath, 'converted_document.docx', () => {
+            cleanUpFiles([inputPath, outputPath]);
+        });
     });
 });
 
-app.listen(port, () => {
-    console.log(`PDFConverts High-Precision Engine operational on port ${port}`);
-});
+app.listen(port, () => console.log(`Backend running on port ${port}`));

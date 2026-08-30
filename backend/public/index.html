@@ -4,37 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
     <title id="pageTitle">PDFConverts - Free Online PDF Tools (Merge, Compress, PDF to Word)</title>
+    <meta name="title" id="metaTitleTag" content="PDFConverts - Free Online PDF Tools (Merge, Compress, PDF to Word)">
     <meta name="description" id="metaDescriptionTag" content="100% free, fast & secure server-powered online PDF tools. Convert PDF to Word, Merge PDF, Split, Compress, and Image to PDF instantly via dedicated cloud processing servers.">
+    <meta name="keywords" content="PDF to Word, Merge PDF, Compress PDF, Split PDF, PDF to Image, Convert Word to PDF, Free PDF Tools, Cloud PDF processing">
+    <meta name="robots" content="index, follow">
     <link rel="canonical" id="canonicalLink" href="https://pdfconverts.website/">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" id="ogTitleTag" content="PDFConverts - All-in-One Online PDF Tools">
+    <meta property="og:description" id="ogDescriptionTag" content="Securely process, convert, and edit your PDFs with powerful high-speed server-side processing libraries.">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
                     colors: {
-                        brand: { 50: '#EEF2FF', 100: '#E0E7FF', 500: '#6366F1', 600: '#4F46E5', 700: '#4338CA' }
+                        brand: {
+                            50: '#EEF2FF',
+                            100: '#E0E7FF',
+                            500: '#6366F1',
+                            600: '#4F46E5',
+                            700: '#4338CA',
+                        }
                     }
                 }
             }
         }
     </script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        .drag-over { border-color: #4F46E5 !important; background-color: #EEF2FF !important; }
+        .drag-over {
+            border-color: #4F46E5 !important;
+            background-color: #EEF2FF !important;
+        }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #F1F5F9; }
         ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header -->
+    <!-- Header / Navbar -->
     <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
@@ -68,6 +92,14 @@
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
             </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 py-2 border-t border-slate-100 bg-gradient-to-r from-brand-50 via-white to-brand-50 text-[11px] sm:text-sm font-medium text-slate-600">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-lock text-emerald-500"></i> No Sign-Up or Login Required</span>
+                <span class="hidden sm:inline text-slate-300">•</span>
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-brand-600"></i> 100% Free &amp; Secure Cloud Servers</span>
+                <span class="hidden sm:inline text-slate-300">•</span>
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-server text-purple-500"></i> High-Accuracy Server Processing</span>
+            </div>
         </div>
         
         <div id="mobileMenu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1">
@@ -82,94 +114,172 @@
         </div>
     </header>
 
+    <!-- Main Container -->
     <main class="flex-grow">
-        <!-- HOME DASHBOARD -->
+        
+        <!-- VIEW: HOME / DASHBOARD -->
         <div id="homeView" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="text-center max-w-3xl mx-auto mb-12">
                 <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight mb-4">
                     Every tool you need to work with <span class="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-600">PDFs</span> in one place
                 </h1>
-                <p class="text-lg text-slate-600 mb-8">100% free, powerful server-backed processing for perfect precision.</p>
+                <p class="text-lg text-slate-600 mb-8">
+                    100% free, powerful server-backed processing for perfect precision.
+                </p>
 
                 <div class="relative max-w-xl mx-auto">
                     <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="text" id="toolSearch" onkeyup="filterTools()" placeholder="Search tools (e.g. Merge, Compress, PDF to Word)..." 
-                           class="w-full pl-11 pr-4 py-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                           class="w-full pl-11 pr-4 py-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition text-slate-800 placeholder-slate-400">
                 </div>
             </div>
 
             <div id="toolsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <a href="/merge-pdf" onclick="return navigateTool(event, 'merge')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+                <a href="/merge-pdf" onclick="return navigateTool(event, 'merge')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 bg-indigo-50 text-brand-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-object-group"></i></div>
+                        <div class="w-12 h-12 bg-indigo-50 text-brand-600 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-object-group"></i>
+                        </div>
                         <h3 class="text-lg font-bold text-slate-900 mb-2">Merge PDF</h3>
-                        <p class="text-sm text-slate-500">Combine multiple PDF files into one unified document in any sequence.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Combine multiple PDF files into one unified document in exact order.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-brand-600">
+                        <span>Select files</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="/split-pdf" onclick="return navigateTool(event, 'split')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+
+                <a href="/split-pdf" onclick="return navigateTool(event, 'split')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-scissors"></i></div>
+                        <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-scissors"></i>
+                        </div>
                         <h3 class="text-lg font-bold text-slate-900 mb-2">Split PDF</h3>
-                        <p class="text-sm text-slate-500">Extract specified pages or ranges (e.g. 1-3, 5) from your PDF file.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Separate or extract specific pages using exact page serial ranges.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-amber-600">
+                        <span>Extract pages</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="/compress-pdf" onclick="return navigateTool(event, 'compress')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+
+                <a href="/compress-pdf" onclick="return navigateTool(event, 'compress')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-compress"></i></div>
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-compress"></i>
+                        </div>
                         <h3 class="text-lg font-bold text-slate-900 mb-2">Compress PDF</h3>
-                        <p class="text-sm text-slate-500">Reduce file size using Ghostscript engine while maintaining visual quality.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Reduce the file size of your PDF while maintaining optimal visual quality.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-emerald-600">
+                        <span>Reduce size</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="/image-to-pdf" onclick="return navigateTool(event, 'imgToPdf')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+
+                <a href="/image-to-pdf" onclick="return navigateTool(event, 'imgToPdf')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-regular fa-image"></i></div>
+                        <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-regular fa-image"></i>
+                        </div>
                         <h3 class="text-lg font-bold text-slate-900 mb-2">Image to PDF</h3>
-                        <p class="text-sm text-slate-500">Convert JPG, PNG, and other images into clean PDF documents.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Convert JPG, PNG, and other image formats into high-quality PDF files.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-purple-600">
+                        <span>Convert images</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="/pdf-to-image" onclick="return navigateTool(event, 'pdfToImg')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+
+                <a href="/pdf-to-image" onclick="return navigateTool(event, 'pdfToImg')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-file-image"></i></div>
+                        <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-image"></i>
+                        </div>
                         <h3 class="text-lg font-bold text-slate-900 mb-2">PDF to Image</h3>
-                        <p class="text-sm text-slate-500">Extract high-res PNG pages from your PDF with Poppler engine.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Extract all pages from a PDF file into high-definition PNG image files.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-rose-600">
+                        <span>Extract images</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="/word-to-pdf" onclick="return navigateTool(event, 'wordToPdf')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+
+                <a href="/word-to-pdf" onclick="return navigateTool(event, 'wordToPdf')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-regular fa-file-word"></i></div>
+                        <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-regular fa-file-word"></i>
+                        </div>
                         <h3 class="text-lg font-bold text-slate-900 mb-2">Word to PDF</h3>
-                        <p class="text-sm text-slate-500">Convert DOCX files into professional PDF documents.</p>
+                        <p class="text-sm text-slate-500 leading-relaxed">Convert DOCX documents into PDF easily with server-side LibreOffice engine.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-blue-600">
+                        <span>Convert Word</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
-                <a href="/pdf-to-word" onclick="return navigateTool(event, 'pdfToWord')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between">
+
+                <a href="/pdf-to-word" onclick="return navigateTool(event, 'pdfToWord')" class="tool-card group bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 bg-sky-50 text-sky-500 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-file-word"></i></div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2">PDF to DOCX / Word</h3>
-                        <p class="text-sm text-slate-500">Convert PDF into editable Microsoft Word document retaining all images & layout.</p>
+                        <div class="w-12 h-12 bg-sky-50 text-sky-500 rounded-xl flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-word"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">PDF to DOCX / Text</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Convert PDF layout, images, and text into fully editable Word DOCX files.</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between text-xs font-semibold text-sky-600">
+                        <span>Convert PDF to Word</span>
+                        <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 </a>
             </div>
+
+            <section class="mt-20 border-t border-slate-200 pt-12">
+                <div class="max-w-4xl mx-auto space-y-8">
+                    <div class="text-center">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Why Choose PDFConverts?</h2>
+                        <p class="text-slate-600 mt-2">High accuracy powered by dedicated server processing engines.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                            <i class="fa-solid fa-shield-halved text-2xl text-brand-600 mb-2"></i>
+                            <h3 class="font-bold text-slate-800 mb-1">100% Secure</h3>
+                            <p class="text-xs text-slate-500">Your documents are processed securely and automatically deleted immediately after conversion.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                            <i class="fa-solid fa-bolt text-2xl text-amber-500 mb-2"></i>
+                            <h3 class="font-bold text-slate-800 mb-1">High Accuracy</h3>
+                            <p class="text-xs text-slate-500">Server-side native tools ensure perfect document formatting, image preservation, and font accuracy.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                            <i class="fa-solid fa-face-smile text-2xl text-emerald-500 mb-2"></i>
+                            <h3 class="font-bold text-slate-800 mb-1">Completely Free</h3>
+                            <p class="text-xs text-slate-500">No registration, subscriptions, or hidden limits required.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <!-- WORKSPACE TOOL VIEW -->
+        <!-- VIEW: WORKSPACE TOOL VIEW -->
         <div id="toolView" class="hidden max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <a href="/" onclick="return navigateHome(event)" class="inline-flex items-center space-x-2 text-sm font-semibold text-slate-500 hover:text-brand-600 mb-6 transition">
                 <i class="fa-solid fa-arrow-left"></i>
                 <span>Back to All Tools</span>
             </a>
 
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm mb-8 flex items-center justify-between">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm mb-8 flex items-center justify-between">
                 <div class="flex items-center space-x-4">
                     <div id="toolHeaderIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-xl"></div>
                     <div>
                         <h2 id="toolHeaderTitle" class="text-2xl font-bold text-slate-900">Tool Title</h2>
-                        <p id="toolHeaderDesc" class="text-sm text-slate-500">Tool Description</p>
+                        <p id="toolHeaderDesc" class="text-sm text-slate-500">Tool Description Goes Here</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Drop Zone -->
-            <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-2xl bg-white p-8 sm:p-12 text-center hover:border-brand-500 transition cursor-pointer shadow-sm relative">
+            <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-2xl bg-white p-8 sm:p-12 text-center hover:border-brand-500 transition-colors cursor-pointer shadow-sm relative">
                 <input type="file" id="fileInput" class="hidden" multiple>
                 <div class="flex flex-col items-center justify-center space-y-4">
                     <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center text-2xl shadow-inner">
@@ -182,10 +292,9 @@
                 </div>
             </div>
 
-            <!-- Dynamic Tool Options Box (Split Serial / PDF to Word Options) -->
-            <div id="toolOptions" class="hidden mt-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4"></div>
+            <!-- Dynamic Tool Options Container (Page Serial & Range Selection) -->
+            <div id="toolOptions" class="hidden mt-6 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4"></div>
 
-            <!-- Selected Files List -->
             <div id="fileListArea" class="hidden mt-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-base font-bold text-slate-800">Selected Files (<span id="fileCount">0</span>)</h3>
@@ -194,8 +303,7 @@
                 <div id="fileItemsContainer" class="grid grid-cols-1 gap-3"></div>
             </div>
 
-            <!-- Progress Bar -->
-            <div id="progressContainer" class="hidden mt-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+            <div id="progressContainer" class="hidden mt-6 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
                 <div class="flex justify-between text-xs font-semibold text-slate-600 mb-2">
                     <span id="progressStatus">Uploading & Processing...</span>
                     <span id="progressPercent">0%</span>
@@ -205,21 +313,19 @@
                 </div>
             </div>
 
-            <!-- Process Button -->
             <div id="actionArea" class="hidden mt-8 text-center">
-                <button id="processBtn" onclick="processFiles()" class="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-3 mx-auto text-base">
+                <button id="processBtn" onclick="processFiles()" class="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center space-x-3 mx-auto text-base">
                     <i class="fa-solid fa-gear"></i>
                     <span id="processBtnText">Process PDF</span>
                 </button>
             </div>
 
-            <!-- Download Result -->
             <div id="resultArea" class="hidden mt-8 bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center space-y-4">
-                <div class="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl mx-auto shadow-lg">
+                <div class="w-16 h-16 bg-emerald-500 text-white rounded-full flex items-center justify-center text-2xl mx-auto shadow-lg shadow-emerald-500/30">
                     <i class="fa-solid fa-check"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-slate-900">Your File is Ready!</h3>
-                <p class="text-sm text-slate-600">Processed with high accuracy.</p>
+                <p class="text-sm text-slate-600">Server processed your request with full precision.</p>
                 <a id="downloadBtn" href="#" download class="inline-flex items-center space-x-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg transition">
                     <i class="fa-solid fa-download"></i>
                     <span>Download File</span>
@@ -229,11 +335,13 @@
     </main>
 
     <footer class="bg-white border-t border-slate-200 mt-16 py-8">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 space-y-3">
             <p>© 2026 PDFConverts. Server-side online PDF tool system.</p>
+            <p>100% Privacy Focused — Files are automatically deleted after processing.</p>
         </div>
     </footer>
 
+    <!-- JS Engine -->
     <script>
         const API_BASE_URL = "https://pdfconverts.onrender.com";
 
@@ -241,13 +349,13 @@
         let selectedFiles = [];
 
         const toolsConfig = {
-            merge: { title: 'Merge PDF Files', desc: 'Combine multiple PDF files into one.', iconClass: 'fa-solid fa-object-group', bgClass: 'bg-indigo-50', textClass: 'text-brand-600', accept: '.pdf', multiple: true, btnText: 'Merge PDFs', endpoint: '/api/merge' },
-            split: { title: 'Split PDF File', desc: 'Extract pages or range from PDF.', iconClass: 'fa-solid fa-scissors', bgClass: 'bg-amber-50', textClass: 'text-amber-500', accept: '.pdf', multiple: false, btnText: 'Split PDF', endpoint: '/api/split' },
-            compress: { title: 'Compress PDF', desc: 'Reduce PDF file size.', iconClass: 'fa-solid fa-compress', bgClass: 'bg-emerald-50', textClass: 'text-emerald-500', accept: '.pdf', multiple: false, btnText: 'Compress PDF', endpoint: '/api/compress' },
-            imgToPdf: { title: 'Convert Image to PDF', desc: 'Convert JPG or PNG files into PDF.', iconClass: 'fa-regular fa-image', bgClass: 'bg-purple-50', textClass: 'text-purple-500', accept: 'image/*', multiple: true, btnText: 'Convert to PDF', endpoint: '/api/image-to-pdf' },
-            pdfToImg: { title: 'Convert PDF to Images', desc: 'Extract high-DPI PNG images from PDF.', iconClass: 'fa-solid fa-file-image', bgClass: 'bg-rose-50', textClass: 'text-rose-500', accept: '.pdf', multiple: false, btnText: 'Extract Images', endpoint: '/api/pdf-to-image' },
-            wordToPdf: { title: 'Convert Word to PDF', desc: 'Convert DOCX documents into PDF.', iconClass: 'fa-regular fa-file-word', bgClass: 'bg-blue-50', textClass: 'text-blue-500', accept: '.docx', multiple: false, btnText: 'Convert to PDF', endpoint: '/api/word-to-pdf' },
-            pdfToWord: { title: 'Convert PDF to Word', desc: 'Convert PDF into DOCX with layout & images preserved.', iconClass: 'fa-solid fa-file-word', bgClass: 'bg-sky-50', textClass: 'text-sky-500', accept: '.pdf', multiple: false, btnText: 'Convert PDF to Word', endpoint: '/api/pdf-to-word' }
+            merge: { title: 'Merge PDF Files', desc: 'Combine multiple PDF documents in exact serial order.', iconClass: 'fa-solid fa-object-group', bgClass: 'bg-indigo-50', textClass: 'text-brand-600', accept: '.pdf', multiple: true, btnText: 'Merge PDFs', slug: 'merge-pdf', endpoint: '/api/merge' },
+            split: { title: 'Split PDF File', desc: 'Separate or extract specific pages from PDF.', iconClass: 'fa-solid fa-scissors', bgClass: 'bg-amber-50', textClass: 'text-amber-500', accept: '.pdf', multiple: false, btnText: 'Split PDF', slug: 'split-pdf', endpoint: '/api/split' },
+            compress: { title: 'Compress PDF', desc: 'Reduce file size while preserving document quality.', iconClass: 'fa-solid fa-compress', bgClass: 'bg-emerald-50', textClass: 'text-emerald-500', accept: '.pdf', multiple: false, btnText: 'Compress PDF', slug: 'compress-pdf', endpoint: '/api/compress' },
+            imgToPdf: { title: 'Convert Image to PDF', desc: 'Convert JPG or PNG files into PDF.', iconClass: 'fa-regular fa-image', bgClass: 'bg-purple-50', textClass: 'text-purple-500', accept: 'image/*', multiple: true, btnText: 'Convert to PDF', slug: 'image-to-pdf', endpoint: '/api/image-to-pdf' },
+            pdfToImg: { title: 'Convert PDF to Images', desc: 'Extract PNG images via Poppler engine.', iconClass: 'fa-solid fa-file-image', bgClass: 'bg-rose-50', textClass: 'text-rose-500', accept: '.pdf', multiple: false, btnText: 'Extract Images', slug: 'pdf-to-image', endpoint: '/api/pdf-to-image' },
+            wordToPdf: { title: 'Convert Word to PDF', desc: 'Convert DOCX using LibreOffice.', iconClass: 'fa-regular fa-file-word', bgClass: 'bg-blue-50', textClass: 'text-blue-500', accept: '.docx', multiple: false, btnText: 'Convert to PDF', slug: 'word-to-pdf', endpoint: '/api/word-to-pdf' },
+            pdfToWord: { title: 'Convert PDF to Word', desc: 'Extract full document layout, text, and embedded images.', iconClass: 'fa-solid fa-file-word', bgClass: 'bg-sky-50', textClass: 'text-sky-500', accept: '.pdf', multiple: false, btnText: 'Convert PDF to Word', slug: 'pdf-to-word', endpoint: '/api/pdf-to-word' }
         };
 
         function toggleMobileMenu() {
@@ -268,38 +376,6 @@
             document.getElementById('toolView').classList.toggle('hidden', viewName !== 'tool');
         }
 
-        function renderToolOptions(toolKey) {
-            const optionsDiv = document.getElementById('toolOptions');
-            optionsDiv.innerHTML = '';
-
-            if (toolKey === 'split') {
-                optionsDiv.innerHTML = `
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-800">Pages Range / Serial Numbers:</label>
-                            <p class="text-xs text-slate-500">Specify page numbers or range to extract (e.g., 1-3, 5, 8)</p>
-                        </div>
-                        <input type="text" id="splitPageInput" value="1" placeholder="e.g. 1-3, 5" 
-                               class="w-full sm:w-48 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    </div>
-                `;
-                optionsDiv.classList.remove('hidden');
-            } else if (toolKey === 'pdfToWord') {
-                optionsDiv.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-800">Conversion Output Format:</label>
-                            <p class="text-xs text-slate-500">Images, tables, and typography formatting will be preserved</p>
-                        </div>
-                        <span class="px-3 py-1 bg-sky-100 text-sky-700 font-semibold rounded-lg text-xs">Microsoft Word (.docx)</span>
-                    </div>
-                `;
-                optionsDiv.classList.remove('hidden');
-            } else {
-                optionsDiv.classList.add('hidden');
-            }
-        }
-
         function openTool(toolKey) {
             currentTool = toolKey;
             const config = toolsConfig[toolKey];
@@ -316,7 +392,6 @@
             iconContainer.className = `w-12 h-12 rounded-xl flex items-center justify-center text-xl ${config.bgClass} ${config.textClass}`;
             iconContainer.innerHTML = `<i class="${config.iconClass}"></i>`;
 
-            renderToolOptions(toolKey);
             clearFiles();
             switchView('tool');
         }
@@ -337,29 +412,52 @@
         const fileInput = document.getElementById('fileInput');
 
         dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag & Drop visual state
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); }, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            if (dt.files && dt.files.length) handleFiles(dt.files);
+        });
+
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
         function handleFiles(files) {
             if (!files.length) return;
             selectedFiles = toolsConfig[currentTool]?.multiple ? [...selectedFiles, ...Array.from(files)] : [files[0]];
             renderFileList();
-        }
-
-        function moveFile(index, direction) {
-            const newIndex = index + direction;
-            if (newIndex < 0 || newIndex >= selectedFiles.length) return;
-            const temp = selectedFiles[index];
-            selectedFiles[index] = selectedFiles[newIndex];
-            selectedFiles[newIndex] = temp;
-            renderFileList();
+            renderToolOptions();
         }
 
         function clearFiles() {
             selectedFiles = [];
             document.getElementById('fileListArea').classList.add('hidden');
+            document.getElementById('toolOptions').classList.add('hidden');
+            document.getElementById('toolOptions').innerHTML = '';
             document.getElementById('actionArea').classList.add('hidden');
             document.getElementById('progressContainer').classList.add('hidden');
             document.getElementById('resultArea').classList.add('hidden');
+        }
+
+        function moveFile(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= selectedFiles.length) return;
+            const temp = selectedFiles[index];
+            selectedFiles[index] = selectedFiles[targetIndex];
+            selectedFiles[targetIndex] = temp;
+            renderFileList();
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            if (!selectedFiles.length) clearFiles();
+            else renderFileList();
         }
 
         function renderFileList() {
@@ -370,24 +468,53 @@
             document.getElementById('fileCount').innerText = selectedFiles.length;
             selectedFiles.forEach((file, idx) => {
                 const card = document.createElement('div');
-                card.className = 'flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm';
+                card.className = 'flex items-center justify-between p-3.5 bg-white border border-slate-200 rounded-xl shadow-sm';
                 card.innerHTML = `
                     <div class="flex items-center space-x-3 truncate">
-                        <span class="w-6 h-6 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center text-xs font-bold">${idx + 1}</span>
-                        <p class="text-xs font-semibold text-slate-800 truncate">${file.name}</p>
+                        <span class="w-6 h-6 rounded-full bg-brand-50 text-brand-600 font-bold text-xs flex items-center justify-center">${idx + 1}</span>
+                        <p class="text-xs font-semibold text-slate-800 truncate max-w-xs sm:max-w-md">${file.name}</p>
                     </div>
-                    ${toolsConfig[currentTool]?.multiple ? `
-                    <div class="flex items-center space-x-1">
-                        <button onclick="moveFile(${idx}, -1)" class="p-1 hover:bg-slate-100 rounded text-slate-500 text-xs"><i class="fa-solid fa-arrow-up"></i></button>
-                        <button onclick="moveFile(${idx}, 1)" class="p-1 hover:bg-slate-100 rounded text-slate-500 text-xs"><i class="fa-solid fa-arrow-down"></i></button>
+                    <div class="flex items-center space-x-2">
+                        ${toolsConfig[currentTool]?.multiple ? `
+                            <button onclick="moveFile(${idx}, -1)" class="p-1 text-slate-400 hover:text-brand-600 ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button onclick="moveFile(${idx}, 1)" class="p-1 text-slate-400 hover:text-brand-600 ${idx === selectedFiles.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-arrow-down"></i></button>
+                        ` : ''}
+                        <button onclick="removeFile(${idx})" class="p-1 text-rose-400 hover:text-rose-600"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
-                    ` : ''}
                 `;
                 container.appendChild(card);
             });
 
             document.getElementById('fileListArea').classList.remove('hidden');
             document.getElementById('actionArea').classList.remove('hidden');
+        }
+
+        // Render Tool Options (e.g., Page range, serial input for Split & PDF to Word)
+        function renderToolOptions() {
+            const optContainer = document.getElementById('toolOptions');
+            optContainer.innerHTML = '';
+
+            if (currentTool === 'split') {
+                optContainer.innerHTML = `
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700">Page Numbers / Serial Range to Extract:</label>
+                        <input type="text" id="pageRangeInput" placeholder="e.g. 1-3, 5, 7-10 (Leave blank for Page 1)" 
+                               class="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <p class="text-[11px] text-slate-400">Specify page numbers or page range you want to extract.</p>
+                    </div>
+                `;
+                optContainer.classList.remove('hidden');
+            } else if (currentTool === 'pdfToWord') {
+                optContainer.innerHTML = `
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-700"><i class="fa-solid fa-circle-info text-brand-600 mr-1"></i> Conversion Engine:</span>
+                        <span class="bg-indigo-50 text-brand-600 px-2.5 py-1 rounded-md font-semibold">pdf2docx (Images & Formatting Preserved)</span>
+                    </div>
+                `;
+                optContainer.classList.remove('hidden');
+            } else {
+                optContainer.classList.add('hidden');
+            }
         }
 
         function updateProgress(percent, statusText) {
@@ -410,8 +537,8 @@
             }
 
             if (currentTool === 'split') {
-                const pageVal = document.getElementById('splitPageInput')?.value || '1';
-                formData.append('pages', pageVal);
+                const pagesVal = document.getElementById('pageRangeInput')?.value || '';
+                formData.append('pageRange', pagesVal);
             }
 
             document.getElementById('actionArea').classList.add('hidden');
@@ -433,6 +560,12 @@
                 const url = URL.createObjectURL(blob);
                 const downloadBtn = document.getElementById('downloadBtn');
                 downloadBtn.href = url;
+                
+                let ext = '.pdf';
+                if (currentTool === 'pdfToWord') ext = '.docx';
+                else if (currentTool === 'pdfToImg') ext = '.zip';
+                
+                downloadBtn.download = `pdfconverts_${currentTool}_${Date.now()}${ext}`;
 
                 document.getElementById('progressContainer').classList.add('hidden');
                 document.getElementById('resultArea').classList.remove('hidden');
