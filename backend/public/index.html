@@ -291,6 +291,14 @@
                     </div>
                 </div>
             </div>
+            <section class="max-w-4xl mx-auto my-8 px-4">
+                <h2 class="text-xl font-bold mb-3">How to Use Our PDF Tools</h2>
+                <ol class="list-decimal pl-5 space-y-2 text-gray-700">
+                    <li><strong>Select Your Tool:</strong> Choose your desired action such as Merge, Compress, or Convert PDF.</li>
+                    <li><strong>Upload Files:</strong> Click the upload area or drop your PDF documents directly from your browser.</li>
+                    <li><strong>Process & Download:</strong> Click the process button and get your output file instantly without quality loss.</li>
+                    </ol>
+            </section>
 
             <!-- Dynamic Tool Options Container (Page Serial & Range Selection) -->
             <div id="toolOptions" class="hidden mt-6 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4"></div>
@@ -333,6 +341,24 @@
             </div>
         </div>
     </main>
+           <section class="max-w-4xl mx-auto my-10 px-4">
+                <h2 class="text-2xl font-bold mb-4">Frequently Asked Questions (FAQs)</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                    <h3 class="font-semibold text-lg">Are my uploaded PDF files safe and secure?</h3>
+                    <p class="text-gray-600">Yes, 100%. All processing happens client-side directly within your browser. Your files are never uploaded to external servers, ensuring maximum security and privacy.</p>
+                    </div>
+                    <div>
+                    <h3 class="font-semibold text-lg">Is PDFConverts free to use?</h3>
+                    <p class="text-gray-600">PDFConverts is completely free with no restrictions, sign-up requirements, or hidden daily limits.</p>
+                    </div>
+                    <div>
+                    <h3 class="font-semibold text-lg">Do I need to install any software?</h3>
+                    <p class="text-gray-600">No installation is required. You can merge, split, compress, and convert PDF files directly online using any desktop or mobile browser.</p>
+                    </div>
+                </div>
+            </section>
 
     <footer class="bg-white border-t border-slate-200 mt-16 py-8">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 space-y-3">
@@ -576,6 +602,40 @@
                 document.getElementById('actionArea').classList.remove('hidden');
             }
         }
+           </script>
+                        <!-- SEO Route Handler (Corrected Slugs & Keys) -->
+  <script>
+                  window.addEventListener("DOMContentLoaded", () => {
+                  const path = window.location.pathname;
+
+       switch (path) {
+      case "/merge-pdf":
+        if (typeof openTool === "function") openTool("merge");
+        break;
+      case "/compress-pdf":
+        if (typeof openTool === "function") openTool("compress");
+        break;
+      case "/split-pdf":
+        if (typeof openTool === "function") openTool("split");
+        break;
+      case "/pdf-to-word":
+        if (typeof openTool === "function") openTool("pdfToWord");
+        break;
+      case "/word-to-pdf":
+        if (typeof openTool === "function") openTool("wordToPdf");
+        break;
+      case "/image-to-pdf":
+      case "/jpg-to-pdf":
+        if (typeof openTool === "function") openTool("imgToPdf");
+        break;
+      case "/pdf-to-image":
+      case "/pdf-to-jpg":
+        if (typeof openTool === "function") openTool("pdfToImg");
+        break;
+      default:
+        break;
+         }
+         });
     </script>
 </body>
 </html>
