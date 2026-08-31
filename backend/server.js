@@ -211,6 +211,7 @@ app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
 
             archive.finalize();
             res.on('finish', () => cleanUpFiles([filePath, ...generatedImages]));
+            res.on('close', () => cleanUpFiles([filePath, ...generatedImages]));
         }
     });
 });
@@ -252,12 +253,15 @@ app.post('/api/pdf-to-word', upload.single('file'), (req, res) => {
     const outputPath = path.join(uploadDir, `converted_${Date.now()}.docx`);
 
     // Call Python pdf2docx command line tool
-    const cmd = `python3 -c "from pdf2docx import Converter; cv = Converter(r'${inputPath}'); cv.convert(r'${outputPath}'); cv.close()"`;
+    // Safely execute Python script using python3 command with escaped quotes
+    const pythonScript = `import sys\nfrom pdf2docx import Converter\ninput_pdf = r"""${inputPath}"""\noutput_docx = r"""${outputPath}"""\ncv = Converter(input_pdf)\ncv.convert(output_docx)\ncv.close()`;
+    
+    const cmd = `python3 -c "${pythonScript.replace(/"/g, '\\"')}"`;
 
     exec(cmd, (error) => {
         if (error || !fs.existsSync(outputPath)) {
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'PDF to Word conversion failed: ' + (error ? error.message : 'File write failed') });
+            return res.status(500).json({ error: 'PDF to Word conversion failed: ' + (error ? error.message : 'Unknown error') });
         }
 
         const downloadFileName = (req.file.originalname || 'document').replace(/\.pdf$/i, '') + '.docx';
