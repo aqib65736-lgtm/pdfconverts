@@ -10,9 +10,8 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     libgl1-mesa-glx \
     libglib2.0-0 \
-    libsm6 \
-    libxext6 \
     && rm -rf /var/lib/apt/lists/*
+
 # Install python-based PDF2DOCX engine with --break-system-packages flag
 RUN pip3 install --no-cache-dir --break-system-packages pdf2docx PyMuPDF
 

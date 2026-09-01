@@ -13,9 +13,6 @@ const port = process.env.PORT || 10000;
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'OPTIONS'], allowedHeaders: ['Content-Type'] }));
 app.use(express.json());
 
-// Serve static files from the root directory
-app.use(express.static(path.join(__dirname)));
-
 const uploadDir = path.join('/tmp', 'pdf_uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -211,7 +208,6 @@ app.post('/api/pdf-to-image', upload.single('file'), (req, res) => {
 
             archive.finalize();
             res.on('finish', () => cleanUpFiles([filePath, ...generatedImages]));
-            res.on('close', () => cleanUpFiles([filePath, ...generatedImages]));
         }
     });
 });
@@ -253,15 +249,12 @@ app.post('/api/pdf-to-word', upload.single('file'), (req, res) => {
     const outputPath = path.join(uploadDir, `converted_${Date.now()}.docx`);
 
     // Call Python pdf2docx command line tool
-    // Safely execute Python script using python3 command with escaped quotes
-    const pythonScript = `import sys\nfrom pdf2docx import Converter\ninput_pdf = r"""${inputPath}"""\noutput_docx = r"""${outputPath}"""\ncv = Converter(input_pdf)\ncv.convert(output_docx)\ncv.close()`;
-    
-    const cmd = `python3 -c "${pythonScript.replace(/"/g, '\\"')}"`;
+    const cmd = `python3 -c "from pdf2docx import Converter; cv = Converter(r'${inputPath}'); cv.convert(r'${outputPath}'); cv.close()"`;
 
     exec(cmd, (error) => {
         if (error || !fs.existsSync(outputPath)) {
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'PDF to Word conversion failed: ' + (error ? error.message : 'Unknown error') });
+            return res.status(500).json({ error: 'PDF to Word conversion failed: ' + (error ? error.message : 'File write failed') });
         }
 
         const downloadFileName = (req.file.originalname || 'document').replace(/\.pdf$/i, '') + '.docx';
@@ -272,18 +265,6 @@ app.post('/api/pdf-to-word', upload.single('file'), (req, res) => {
     });
 });
 
-// server.js ke aakhir mein wildcard route ko is tarah replace karein:
-app.get('*', (req, res) => {
-    const indexPath = path.join(__dirname, 'public', 'index.html');
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    } else {
-        // Fallback agar file root ya parent dir mein ho
-        const fallbackPath = path.join(__dirname, '../index.html');
-        if (fs.existsSync(fallbackPath)) {
-            res.sendFile(fallbackPath);
-        } else {
-            res.status(404).send("Index file not found");
-        }
-    }
+app.listen(port, () => {
+    console.log(`Enhanced PDFConverts Engine operational on port ${port}`);
 });
