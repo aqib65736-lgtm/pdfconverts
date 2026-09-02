@@ -1,5 +1,17 @@
 {
-  "version": 2,
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "pdfconverts.website"
+        }
+      ],
+      "destination": "https://www.pdfconverts.website/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

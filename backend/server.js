@@ -113,36 +113,42 @@ app.post('/api/split', upload.single('file'), async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 3. COMPRESS PDF (Using PyMuPDF - Lightweight & Accurate)
+// 3. COMPRESS PDF (User-Selectable: Low, Medium, High)
 // -------------------------------------------------------------
 app.post('/api/compress', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const inputPath = req.file.path;
     const outputPath = path.join(uploadDir, `compressed_${Date.now()}.pdf`);
+    const level = req.body.level || 'medium'; // Default: medium
 
-    // PyMuPDF (fitz) se compress karein:
-    // garbage=4  -> Unused objects hata kar file size kam karein
-    // deflate=True -> Streams ko compress karein (ZIP)
-    // clean=True -> Metadata clean karein
-    const pythonCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=4, deflate=True, clean=True); doc.close()"`;
+    let pyCmd = '';
 
-    // Render free plan ke liye 60 seconds ka timeout (taake zyada wait na karna pade)
-    exec(pythonCmd, { timeout: 60000 }, (error, stdout, stderr) => {
-        // Agar error aaye toh input file delete karein
+    // PyMuPDF (fitz) commands based on user selection
+    if (level === 'low') {
+        // Low: Sirf garbage collection basic, deflate OFF (Fastest, size thori kam)
+        pyCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=1, deflate=False); doc.close()"`;
+    } else if (level === 'high') {
+        // High: Garbage=4, Deflate, Clean (Slowest, size sab se kam)
+        pyCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=4, deflate=True, clean=True); doc.close()"`;
+    } else {
+        // Medium (Default): Balanced approach (Recommended)
+        pyCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=3, deflate=True); doc.close()"`;
+    }
+
+    // Render free plan ke liye 60 seconds timeout
+    exec(pyCmd, { timeout: 60000 }, (error, stdout, stderr) => {
         if (error) {
-            console.error('Compression Error (PyMuPDF):', error.message, stderr);
+            console.error('Compression Error:', error.message, stderr);
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'Compression failed. Please try again with a smaller file.' });
+            return res.status(500).json({ error: 'Compression failed. Please try again.' });
         }
 
-        // Agar output file generate nahi hui toh error
         if (!fs.existsSync(outputPath)) {
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'Compression failed. Output file missing.' });
+            return res.status(500).json({ error: 'Compression failed. Output missing.' });
         }
 
-        // Success! File download karayein
         res.download(outputPath, 'compressed.pdf', () => {
             cleanUpFiles([inputPath, outputPath]);
         });
