@@ -113,21 +113,36 @@ app.post('/api/split', upload.single('file'), async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 3. COMPRESS PDF
+// 3. COMPRESS PDF (Using PyMuPDF - Lightweight & Accurate)
 // -------------------------------------------------------------
 app.post('/api/compress', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
     const inputPath = req.file.path;
     const outputPath = path.join(uploadDir, `compressed_${Date.now()}.pdf`);
 
-    const gsCmd = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${outputPath}" "${inputPath}"`;
+    // PyMuPDF (fitz) se compress karein:
+    // garbage=4  -> Unused objects hata kar file size kam karein
+    // deflate=True -> Streams ko compress karein (ZIP)
+    // clean=True -> Metadata clean karein
+    const pythonCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=4, deflate=True, clean=True); doc.close()"`;
 
-    exec(gsCmd, (error) => {
-        if (error || !fs.existsSync(outputPath)) {
+    // Render free plan ke liye 60 seconds ka timeout (taake zyada wait na karna pade)
+    exec(pythonCmd, { timeout: 60000 }, (error, stdout, stderr) => {
+        // Agar error aaye toh input file delete karein
+        if (error) {
+            console.error('Compression Error (PyMuPDF):', error.message, stderr);
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'Compression failed.' });
+            return res.status(500).json({ error: 'Compression failed. Please try again with a smaller file.' });
         }
 
+        // Agar output file generate nahi hui toh error
+        if (!fs.existsSync(outputPath)) {
+            cleanUpFiles([inputPath]);
+            return res.status(500).json({ error: 'Compression failed. Output file missing.' });
+        }
+
+        // Success! File download karayein
         res.download(outputPath, 'compressed.pdf', () => {
             cleanUpFiles([inputPath, outputPath]);
         });
