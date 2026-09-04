@@ -834,68 +834,92 @@
         if (statusText) document.getElementById('progressStatus').innerText = statusText;
     }
 
-        async function processFiles() {
+            async function processFiles() {
         if (!selectedFiles.length) return;
 
         const config = toolsConfig[currentTool];
         const formData = new FormData();
 
-        // ---------- FILES ADD KAREN (Merge ke liye multiple, baqi ke liye single) ----------
+        // ---------- FILES ADD KAREN ----------
         if (config.multiple) {
             selectedFiles.forEach(f => formData.append('files', f));
         } else {
             formData.append('file', selectedFiles[0]);
         }
 
-        // ---------- SPLIT PDF: Page Range Add Karein ----------
+        // ---------- SPLIT PDF: Page Range ----------
         if (currentTool === 'split') {
             const pagesVal = document.getElementById('pageRangeInput')?.value || '';
             formData.append('pageRange', pagesVal);
         }
 
-        // ---------- COMPRESS PDF: User ki Selection Add Karein (YEH NAYI LINE HAI) ----------
+        // ---------- COMPRESS PDF: Compression Level ----------
         if (currentTool === 'compress') {
             const level = document.getElementById('compressLevel')?.value || 'medium';
             formData.append('level', level);
         }
 
-        // ---------- UI Update: Progress Bar Dikhayen ----------
+        // ---------- UI: Buttons chhupayen aur Progress dikhayen ----------
         document.getElementById('actionArea').classList.add('hidden');
-        updateProgress(25, 'Uploading file(s) to server...');
+        document.getElementById('resultArea').classList.add('hidden');
+        
+        // Progress ko 0% se shuru karein
+        updateProgress(0, 'Starting server processing...');
+
+        // ---------- SMOOTH PROGRESS TIMER (0% se 90% tak slow slow) ----------
+        let currentProgress = 0;
+        const progressInterval = setInterval(() => {
+            // Random increment 1 se 4 ke darmiyan (taake natural lage)
+            const increment = Math.floor(Math.random() * 4) + 1; 
+            currentProgress = Math.min(currentProgress + increment, 90); // 90% se zyada nahi hone denge
+            document.getElementById('progressBar').style.width = `${currentProgress}%`;
+            document.getElementById('progressPercent').innerText = `${currentProgress}%`;
+            
+            // Status text thora variable rakhein
+            const msgs = ['Compressing data...', 'Optimizing PDF structure...', 'Processing pages...', 'Almost there...'];
+            const msgIndex = Math.floor(Math.random() * msgs.length);
+            document.getElementById('progressStatus').innerText = msgs[msgIndex];
+        }, 500); // Har 0.5 second mein update
 
         try {
-            // ---------- Backend (Render) par API Call ----------
+            // ---------- BACKEND API CALL ----------
             const response = await fetch(`${API_BASE_URL}${config.endpoint}`, {
                 method: 'POST',
                 body: formData
             });
 
-            updateProgress(75, 'Executing PDF libraries on server...');
+            // ---------- Server se jawab aa gaya, timer band karein ----------
+            clearInterval(progressInterval);
 
-            // ---------- Agar Error aaye toh ----------
+            // Progress ko 95% kar dein (taake user ko lage ke almost complete hai)
+            updateProgress(95, 'Finalizing download...');
+
             if (!response.ok) throw new Error('Server returned error status');
 
-            // ---------- Download Ready ----------
             const blob = await response.blob();
-            updateProgress(100, 'Done!');
+            
+            // ---------- 100% COMPLETE ----------
+            updateProgress(100, 'Done! Your file is ready.');
 
             const url = URL.createObjectURL(blob);
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.href = url;
             
-            // ---------- File Extension Set Karein ----------
             let ext = '.pdf';
             if (currentTool === 'pdfToWord') ext = '.docx';
             else if (currentTool === 'pdfToImg') ext = '.zip';
             
             downloadBtn.download = `pdfconverts_${currentTool}_${Date.now()}${ext}`;
 
-            // ---------- Result Show Karein, Progress Chhupayen ----------
-            document.getElementById('progressContainer').classList.add('hidden');
-            document.getElementById('resultArea').classList.remove('hidden');
+            // Progress container chhupayen, result dikhayen
+            setTimeout(() => {
+                document.getElementById('progressContainer').classList.add('hidden');
+                document.getElementById('resultArea').classList.remove('hidden');
+            }, 800); // Thora sa delay taake 100% dikhta rahe
 
         } catch (err) {
-            // ---------- Agar koi Error ho ----------
+            // ---------- ERROR AANE PAR ----------
+            clearInterval(progressInterval);
             alert('Server Error: ' + err.message);
             document.getElementById('progressContainer').classList.add('hidden');
             document.getElementById('actionArea').classList.remove('hidden');
