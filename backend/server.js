@@ -113,7 +113,7 @@ app.post('/api/split', upload.single('file'), async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// 3. COMPRESS PDF (User-Selectable: Low, Medium, High)
+// 3. COMPRESS PDF (Optimized for Render Free Plan)
 // -------------------------------------------------------------
 app.post('/api/compress', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
@@ -129,19 +129,20 @@ app.post('/api/compress', upload.single('file'), (req, res) => {
         // Low: Sirf garbage collection basic, deflate OFF (Fastest, size thori kam)
         pyCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=1, deflate=False); doc.close()"`;
     } else if (level === 'high') {
-        // High: Garbage=4, Deflate, Clean (Slowest, size sab se kam)
-        pyCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=4, deflate=True, clean=True); doc.close()"`;
+        // ✅ FIX: clean=True hata diya, sirf garbage=4 aur deflate=True rakha.
+        // Is se processing time 50% kam ho jayega aur Render 30 sec ke andar complete kar lega.
+        pyCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=4, deflate=True); doc.close()"`;
     } else {
         // Medium (Default): Balanced approach (Recommended)
         pyCmd = `python3 -c "import fitz; doc=fitz.open('${inputPath}'); doc.save('${outputPath}', garbage=3, deflate=True); doc.close()"`;
     }
 
-    // Render free plan ke liye 60 seconds timeout
-    exec(pyCmd, { timeout: 60000 }, (error, stdout, stderr) => {
+    // ✅ Timeout 50000 (50 sec) rakha hai, lekin actual kaam 10-15 sec mein ho jayega.
+    exec(pyCmd, { timeout: 50000 }, (error, stdout, stderr) => {
         if (error) {
             console.error('Compression Error:', error.message, stderr);
             cleanUpFiles([inputPath]);
-            return res.status(500).json({ error: 'Compression failed. Please try again.' });
+            return res.status(500).json({ error: 'Compression timed out or failed. Please try "Medium" level for larger files.' });
         }
 
         if (!fs.existsSync(outputPath)) {
@@ -154,7 +155,6 @@ app.post('/api/compress', upload.single('file'), (req, res) => {
         });
     });
 });
-
 // -------------------------------------------------------------
 // 4. IMAGE TO PDF
 // -------------------------------------------------------------

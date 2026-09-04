@@ -802,7 +802,7 @@
             `;
             optContainer.classList.remove('hidden');
         } 
-        // ---------- COMPRESS PDF: Quality Level Selection (NEW) ----------
+            // ---------- COMPRESS PDF: Quality Level Selection (NEW) ----------
         else if (currentTool === 'compress') {
             optContainer.innerHTML = `
                 <div class="space-y-2">
@@ -813,6 +813,9 @@
                         <option value="high">High (Slowest, Smallest File)</option>
                     </select>
                     <p class="text-[11px] text-slate-400">Higher compression reduces file size but may take slightly longer on our server.</p>
+                    
+                    <!-- ✅ YAHAN WARNING WALI LINE PASTE KARNI HAI (Neechay dekhain) -->
+                    <p class="text-[11px] text-amber-600">Tip: For files over 10MB, "Medium" is recommended for faster processing on free servers.</p>
                 </div>
             `;
             optContainer.classList.remove('hidden');
