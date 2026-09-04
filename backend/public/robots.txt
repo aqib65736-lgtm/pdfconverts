@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pdfconverts.website/sitemap.xml
+Sitemap: https://www.pdfconverts.website/sitemap.xml
